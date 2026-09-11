@@ -26,7 +26,9 @@
                             rust: '#bf431d',
                             rustDark: '#80260b',
                             amber: '#f5821f',
-                            yellow: '#f3b021',
+                            yellow: '#eab308',
+                            green: '#16a34a',
+                            red: '#dc2626',
                             metal: '#48443f',
                             highlight: '#ff9436'
                         }
@@ -127,7 +129,7 @@
                         <h1 class="text-3xl sm:text-4xl font-bold text-gaslands-amber leading-none tracking-wider">
                             GASLANDS <span class="text-white text-xl sm:text-2xl font-normal">REPOSTADO</span>
                         </h1>
-                        <p class="text-xs text-gaslands-amber/70 font-mono tracking-widest uppercase">Reglamento Interactivo Dinámico v2.0</p>
+                        <p class="text-xs text-gaslands-amber/70 font-mono tracking-widest uppercase">Reglamento Interactivo Dinámico v2.1</p>
                     </div>
                 </div>
 
@@ -244,9 +246,9 @@
 
     </main>
 
-    <!-- MODAL 1: SKID DICE SIMULATOR (DADO DE DERRAPE) -->
+    <!-- MODAL 1: SKID DICE SIMULATOR (DADO DE DERRAPE REVISED) -->
     <div id="diceModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="distressed-panel bg-gaslands-card w-full max-w-xl rounded-lg border-2 border-gaslands-amber p-6 shadow-2xl relative">
+        <div class="distressed-panel bg-gaslands-card w-full max-w-2xl rounded-lg border-2 border-gaslands-amber p-5 sm:p-6 shadow-2xl relative max-h-[90vh] overflow-y-auto">
             <button onclick="toggleDiceModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
                 <i class="fa-solid fa-xmark"></i>
             </button>
@@ -254,52 +256,82 @@
             <h3 class="text-3xl text-gaslands-amber font-bold mb-1 flex items-center gap-2">
                 <i class="fa-solid fa-dice text-gaslands-rust"></i> Simulador de Dados de Derrape (Skid Dice)
             </h3>
-            <p class="text-xs text-gray-400 mb-6">Lanza los dados de derrape o consulta la tabla de equivalencias para dados D6 estándar.</p>
+            <p class="text-xs text-gray-400 mb-5">Simula tiradas con la correspondencia oficial de Gaslands Refuelled para dados D6 estándar.</p>
 
             <!-- Dice Controls -->
-            <div class="flex items-center gap-4 mb-6 bg-gaslands-panel p-3 rounded border border-gaslands-border">
-                <label class="text-sm font-bold text-gray-300">Cantidad de dados:</label>
-                <select id="diceCountSelect" class="bg-black text-white border border-gaslands-border rounded px-3 py-1 font-bold outline-none">
-                    <option value="1">1 Dado</option>
-                    <option value="2">2 Dados</option>
-                    <option value="3" selected>3 Dados</option>
-                    <option value="4">4 Dados</option>
-                    <option value="5">5 Dados</option>
-                    <option value="6">6 Dados</option>
-                </select>
-                <button onclick="rollSkidDice()" class="ml-auto bg-gaslands-rust hover:bg-gaslands-amber text-white hover:text-black font-bold px-5 py-2 rounded transition shadow flex items-center gap-2">
-                    <i class="fa-solid fa-rotate text-sm"></i> Lanzar Dados
-                </button>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-5 bg-gaslands-panel p-3 rounded border border-gaslands-border">
+                <div class="flex items-center gap-2">
+                    <label class="text-sm font-bold text-gray-300">Maniobra / Cantidad:</label>
+                    <select id="diceCountSelect" class="bg-black text-white border border-gaslands-border rounded px-3 py-1 font-bold outline-none">
+                        <option value="1">1 Dado</option>
+                        <option value="2">2 Dados</option>
+                        <option value="3" selected>3 Dados</option>
+                        <option value="4">4 Dados</option>
+                        <option value="5">5 Dados</option>
+                        <option value="6">6 Dados</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <button onclick="rollSkidDice()" class="bg-gaslands-rust hover:bg-gaslands-amber hover:text-black text-white font-bold px-4 py-2 rounded transition shadow flex items-center gap-2 text-xs uppercase">
+                        <i class="fa-solid fa-rotate"></i> Lanzar
+                    </button>
+                    <button id="pushEngineBtn" onclick="pushTheEngine()" class="bg-gaslands-panel hover:bg-gaslands-border text-gaslands-amber border border-gaslands-amber/50 font-bold px-3 py-2 rounded transition shadow text-xs uppercase flex items-center gap-1.5" title="Añade 1 Marcador de Peligro para repetir dados">
+                        <i class="fa-solid fa-gauge-high"></i> Forzar Máquina (+1 Peligro)
+                    </button>
+                </div>
             </div>
 
-            <!-- Dice Results Area -->
-            <div id="diceResults" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6 min-h-[120px] items-center justify-center">
+            <!-- Dice Roll Results Breakdown -->
+            <div id="diceSummary" class="hidden mb-4 p-3 bg-black/60 rounded border border-gaslands-border text-xs flex flex-wrap items-center justify-around gap-2 text-center">
+                <!-- Dynamic Summary Stats -->
+            </div>
+
+            <!-- Dice Visual Results Area -->
+            <div id="diceResults" class="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6 min-h-[110px] items-center justify-center">
                 <!-- Results rendered here -->
             </div>
 
-            <!-- D6 Conversion Reference Table -->
+            <!-- D6 Conversion Reference Table (Exact Request) -->
             <div class="border-t border-gaslands-border pt-4">
-                <h4 class="text-sm font-bold text-gaslands-amber mb-2 uppercase">Tabla de Conversión D6 Estándar:</h4>
-                <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-                    <div class="bg-black/40 p-2 rounded border border-gaslands-border flex items-center justify-between">
-                        <span class="font-bold text-gray-300">D6: 1 ó 2</span>
-                        <span class="text-gaslands-amber font-bold">SHIFT (Cambio)</span>
+                <h4 class="text-sm font-bold text-gaslands-amber mb-2 uppercase flex items-center justify-between">
+                    <span>Tabla Oficial de Conversión D6 Estándar:</span>
+                    <span class="text-[10px] text-gray-400 font-normal">Oficial Gaslands Refuelled</span>
+                </h4>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+                    <div class="bg-black/50 p-2.5 rounded border border-red-600/40 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded bg-red-600 text-white font-bold flex items-center justify-center font-mono">1</span>
+                            <span class="font-bold text-gray-200">HAZARD (Peligro)</span>
+                        </div>
+                        <i class="fa-solid fa-triangle-exclamation text-red-500 text-base"></i>
                     </div>
-                    <div class="bg-black/40 p-2 rounded border border-gaslands-border flex items-center justify-between">
-                        <span class="font-bold text-gray-300">D6: 3</span>
-                        <span class="text-gaslands-yellow font-bold">SLIDE (Deslizar)</span>
+
+                    <div class="bg-black/50 p-2.5 rounded border border-yellow-500/40 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded bg-yellow-500 text-black font-bold flex items-center justify-center font-mono">2</span>
+                            <span class="font-bold text-gray-200">SPIN (Trompo)</span>
+                        </div>
+                        <i class="fa-solid fa-rotate-right text-yellow-500 text-base"></i>
                     </div>
-                    <div class="bg-black/40 p-2 rounded border border-gaslands-border flex items-center justify-between">
-                        <span class="font-bold text-gray-300">D6: 4</span>
-                        <span class="text-gaslands-yellow font-bold">SPIN (Trompo)</span>
+
+                    <div class="bg-black/50 p-2.5 rounded border border-yellow-500/40 flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <span class="w-6 h-6 rounded bg-yellow-500 text-black font-bold flex items-center justify-center font-mono">3</span>
+                            <span class="font-bold text-gray-200">SLIDE (Patinazo)</span>
+                        </div>
+                        <i class="fa-solid fa-angles-right text-yellow-500 text-base"></i>
                     </div>
-                    <div class="bg-black/40 p-2 rounded border border-gaslands-border flex items-center justify-between">
-                        <span class="font-bold text-gray-300">D6: 5</span>
-                        <span class="text-gaslands-rust font-bold">HAZARD (Peligro)</span>
-                    </div>
-                    <div class="bg-black/40 p-2 rounded border border-gaslands-border flex items-center justify-between">
-                        <span class="font-bold text-gray-300">D6: 6</span>
-                        <span class="text-green-400 font-bold">HIT (Éxito)</span>
+
+                    <div class="bg-black/50 p-2.5 rounded border border-green-600/40 flex items-center justify-between sm:col-span-3">
+                        <div class="flex items-center gap-2">
+                            <div class="flex gap-1">
+                                <span class="w-6 h-6 rounded bg-green-600 text-white font-bold flex items-center justify-center font-mono">4</span>
+                                <span class="w-6 h-6 rounded bg-green-600 text-white font-bold flex items-center justify-center font-mono">5</span>
+                                <span class="w-6 h-6 rounded bg-green-600 text-white font-bold flex items-center justify-center font-mono">6</span>
+                            </div>
+                            <span class="font-bold text-gray-200 ml-1">SHIFT (Cambio de Marcha)</span>
+                        </div>
+                        <i class="fa-solid fa-gears text-green-500 text-base"></i>
                     </div>
                 </div>
             </div>
@@ -361,8 +393,8 @@
                     <ul class="space-y-1 text-gray-300">
                         <li><strong class="text-white">Frontal / Posterior / Lateral:</strong> 90º desde el centro del vehículo hacia cada uno de los lados.</li>
                         <li><strong class="text-white">Torreta (360º):</strong> Dispara en cualquier dirección.</li>
-                        <li><strong class="text-white">Distancia Corta:</strong> Dentro del alcance de la plantilla Corta (4+ Impactos críticos con armas pesadas).</li>
-                        <li><strong class="text-white">Armas Cortas (Hand Weapons):</strong> Usadas por la tripulación. Puerden disparar 360º.</li>
+                        <li><strong class="text-white">Escopeta:</strong> L1d6 (Largo) - M2d6 (Medio) - C3d6 (Corto).</li>
+                        <li><strong class="text-white">Armas Cortas (Hand Weapons):</strong> Usadas por la tripulación. Pueden disparar 360º.</li>
                     </ul>
                 </div>
 
@@ -423,7 +455,7 @@
                     <ol class="list-decimal list-inside space-y-2 text-xs text-gray-300 mb-3">
                         <li><strong>Seleccionar Plantilla:</strong> Elige una plantilla de movimiento permitida según tu marcha actual.</li>
                         <li><strong>Lanzar Dados de Derrape (Skid Dice):</strong> Tira hasta tantos dados de derrape como el atributo de <em>Maniobra</em> del vehículo.</li>
-                        <li><strong>Resolver Dados de Derrape:</strong> Aplica los símbolos de Shift (Cambio), Slide (Deslizar), Spin (Trompo), Hazard (Peligro) o Hit (Éxito).</li>
+                        <li><strong>Resolver Dados de Derrape:</strong> Aplica los resultados de Hazard (Peligro), Spin (Trompo), Slide (Patinazo) y Shift (Cambio).</li>
                         <li><strong>Mover el Vehículo:</strong> Coloca la plantilla tocando la parte frontal del vehículo y desplázalo hasta el extremo opuesto.</li>
                     </ol>
                     <p class="text-xs text-gaslands-yellow font-bold">Marcha Atrás: Solo permitida en 1ª marcha alineando la plantilla con la parte trasera del vehículo.</p>
@@ -432,25 +464,26 @@
             {
                 id: 'dados_derrape',
                 category: 'movimiento',
-                title: 'Símbolos de los Dados de Derrape (Skid Dice)',
-                tags: ['dados', 'derrape', 'skid', 'shift', 'slide', 'spin', 'hazard', 'hit'],
+                title: 'Mapeo y Reglas de los Dados de Derrape (Skid Dice)',
+                tags: ['dados', 'derrape', 'skid', 'shift', 'slide', 'spin', 'hazard', 'cambio', 'patinazo', 'trompo', 'peligro'],
                 content: `
+                    <p class="mb-3 text-xs text-gray-300">Equivalencia exacta para utilizar dados D6 estándar en lugar de los dados oficiales de derrape:</p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                        <div class="bg-black/40 p-2.5 rounded border border-gaslands-border">
-                            <span class="font-bold text-gaslands-amber block text-sm">SHIFT (Cambio de Marcha)</span>
-                            <p class="text-gray-300 mt-1">Permite subir 1 marcha, bajar 1 marcha o descartar 1 marcador de Peligro.</p>
+                        <div class="bg-black/40 p-2.5 rounded border border-red-600/50">
+                            <span class="font-bold text-red-500 block text-sm">D6 = 1: HAZARD (Peligro)</span>
+                            <p class="text-gray-300 mt-1">Añade inmediatamente 1 marcador de Peligro a la ficha de control del vehículo.</p>
                         </div>
-                        <div class="bg-black/40 p-2.5 rounded border border-gaslands-border">
-                            <span class="font-bold text-gaslands-yellow block text-sm">SLIDE (Deslizamiento)</span>
-                            <p class="text-gray-300 mt-1">Añade la plantilla de Deslizamiento al movimiento y suma 1 marcador de Peligro.</p>
-                        </div>
-                        <div class="bg-black/40 p-2.5 rounded border border-gaslands-border">
-                            <span class="font-bold text-gaslands-yellow block text-sm">SPIN (Trompo)</span>
+                        <div class="bg-black/40 p-2.5 rounded border border-yellow-500/50">
+                            <span class="font-bold text-yellow-500 block text-sm">D6 = 2: SPIN (Trompo)</span>
                             <p class="text-gray-300 mt-1">Coloca la plantilla de Trompo al final del movimiento para encarar el vehículo y suma 1 Peligro.</p>
                         </div>
-                        <div class="bg-black/40 p-2.5 rounded border border-gaslands-border">
-                            <span class="font-bold text-gaslands-rust block text-sm">HAZARD (Peligro)</span>
-                            <p class="text-gray-300 mt-1">Añade inmediatamente 1 marcador de Peligro a la ficha del vehículo.</p>
+                        <div class="bg-black/40 p-2.5 rounded border border-yellow-500/50">
+                            <span class="font-bold text-yellow-500 block text-sm">D6 = 3: SLIDE (Patinazo)</span>
+                            <p class="text-gray-300 mt-1">Añade la plantilla de Patinazo al movimiento y suma 1 marcador de Peligro.</p>
+                        </div>
+                        <div class="bg-black/40 p-2.5 rounded border border-green-600/50">
+                            <span class="font-bold text-green-500 block text-sm">D6 = 4, 5 ó 6: SHIFT (Cambio)</span>
+                            <p class="text-gray-300 mt-1">Permite subir 1 marcha (+1 Peligro), bajar 1 marcha (+1 Peligro), descartar 1 marcador de Peligro o cancelar un resultado de Trompo/Patinazo.</p>
                         </div>
                     </div>
                 `
@@ -459,28 +492,14 @@
                 id: 'combate_disparo',
                 category: 'combate',
                 title: 'Paso de Ataque & Reglas de Disparo',
-                tags: ['disparo', 'combate', 'armas', 'arcos', 'cobertura', 'evasion', 'impacto'],
+                tags: ['disparo', 'combate', 'armas', 'arcos', 'cobertura', 'evasion', 'impacto', 'escopeta'],
                 content: `
                     <p class="mb-3">En el Paso de Ataque, cada miembro de la tripulación o arma montada disponible puede realizar un ataque a los objetivos en rango.</p>
                     <ul class="list-disc list-inside space-y-2 text-xs text-gray-300">
                         <li><strong>Arcos de Fuego:</strong> Frontal (90º), Posterior (90º), Lateral Izquierdo/Derecho (90º) o Torreta (360º).</li>
-                        <li><strong>Chequeo de Cobertura:</strong> Si la línea de visión cruza escenografía u otro vehículo, el objetivo gana +1 D6 en su tirada de Evasión.</li>
-                        <li><strong>Tirada de Evasión:</strong> El defensor tira tantos D6 como su <em>Marcha Actual</em>. Cada resultado de 4, 5 ó 6 anula 1 impacto directo recibido.</li>
+                        <li><strong>Escopeta:</strong> L1d6 - M2d6 - C3d6 (1d6 a alcance Largo, 2d6 a Medio, 3d6 a Corto).</li>
+                        <li><strong>Tirada de Evasión:</strong> El defensor tira tantos D6 como su <em>Marcha Actual</em>. Cada resultado de 6+ anula 1 impacto directo recibido.</li>
                     </ul>
-                `
-            },
-            {
-                id: 'armas_descarga',
-                category: 'combate',
-                title: 'Armas de Descarga (Dropped Weapons)',
-                tags: ['descarga', 'aceite', 'abrojos', 'minas', 'humo', 'municion'],
-                content: `
-                    <p class="mb-2">Las armas de descarga (como dispensadores de aceite, abrojos o minas) no realizan tiradas de ataque convencionales.</p>
-                    <div class="bg-black/40 p-3 rounded border border-gaslands-border text-xs text-gray-300 space-y-2">
-                        <p>1. Se despliegan usando la plantilla correspondiente tocando la parte posterior del vehículo.</p>
-                        <p>2. Cualquier vehículo que pise la plantilla de descarga sufre inmediatamente los efectos de terreno o impacto especificados.</p>
-                        <p>3. Requieren marcar 1 casilla de Munición de la ficha cada vez que son utilizadas.</p>
-                    </div>
                 `
             },
             {
@@ -541,7 +560,7 @@
                     <div class="space-y-3 text-xs">
                         <div class="bg-black/40 p-3 rounded border border-gaslands-border">
                             <strong class="text-gaslands-amber text-sm block mb-1">MISHKIN (Tecnología y Armas Épicas)</strong>
-                            <p class="text-gray-300">Acceso exclusivo a cañones de electrones, rayo incinerador y dispositivos de teletransporte. Especialistas en gestionar energía tecnológica.</p>
+                            <p class="text-gray-300">Acceso exclusivo a cañones de electrones, rayo incinerador y dispositivos de teletransporte.</p>
                         </div>
                         <div class="bg-black/40 p-3 rounded border border-gaslands-border">
                             <strong class="text-gaslands-rust text-sm block mb-1">MAXXINE (Velocidad y Derrapes Extremos)</strong>
@@ -549,7 +568,7 @@
                         </div>
                         <div class="bg-black/40 p-3 rounded border border-gaslands-border">
                             <strong class="text-gaslands-yellow text-sm block mb-1">REGLA DE MASACRE (Carnage Rule)</strong>
-                            <p class="text-gray-300">Si surge una duda o disputa sobre el reglamento a mitad de partida y no se llega a un acuerdo rápido, ¡aplica la opción que genere la mayor destrucción posible sobre la mesa!</p>
+                            <p class="text-gray-300">Si surge una duda sobre el reglamento a mitad de partida, ¡aplica la opción que genere la mayor destrucción posible!</p>
                         </div>
                     </div>
                 `
@@ -562,15 +581,15 @@
                 <h4 class="font-bold text-gaslands-amber text-base mb-2">1. PASO DE MOVIMIENTO</h4>
                 <p class="mb-2">Elige una plantilla permitida por tu marcha actual. Puedes lanzar hasta tantos Dados de Derrape como tu atributo de <em>Maniobra</em>.</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300 mt-2">
-                    <div class="bg-black/40 p-2 rounded">✓ Resuelve Shift para cambiar marcha o descartar Peligro.</div>
-                    <div class="bg-black/40 p-2 rounded">✓ Aplica Slide o Spin si han salido dichos símbolos.</div>
+                    <div class="bg-black/40 p-2 rounded">✓ Resuelve Shift (Cambios) para cambiar marcha o descartar Peligro.</div>
+                    <div class="bg-black/40 p-2 rounded">✓ Aplica Slide (Patinazo) o Spin (Trompo) no cancelados.</div>
                 </div>
             `,
             2: `
                 <h4 class="font-bold text-gaslands-amber text-base mb-2">2. PASO DE ATAQUE</h4>
                 <p class="mb-2">Mide rango y arcos de fuego desde tus armas instaladas o miembros de la tripulación.</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-gray-300 mt-2">
-                    <div class="bg-black/40 p-2 rounded">✓ El objetivo tira D6 de Evasion igual a su Marcha Actual.</div>
+                    <div class="bg-black/40 p-2 rounded">✓ El objetivo tira D6 de Evasión igual a su Marcha Actual (6+ cancela).</div>
                     <div class="bg-black/40 p-2 rounded">✓ Descuenta los Puntos de Carrocería (PC) perdidos por impactos.</div>
                 </div>
             `,
@@ -584,7 +603,24 @@
             `
         };
 
+        // EXACT D6 SKID DICE MAPPING REQUIRED BY USER
+        // D6 = 1: Hazard (Peligro) -> Color Rojo (#dc2626)
+        // D6 = 2: Spin (Trompo) -> Color Amarillo (#eab308)
+        // D6 = 3: Slide (Patinazo) -> Color Amarillo (#eab308)
+        // D6 = 4: Shift (Cambio) -> Color Verde (#16a34a)
+        // D6 = 5: Shift (Cambio) -> Color Verde (#16a34a)
+        // D6 = 6: Shift (Cambio) -> Color Verde (#16a34a)
+        const SKID_DICE_MAPPING = {
+            1: { face: 'HAZARD', label: 'Peligro', colorClass: 'text-red-500', borderClass: 'border-red-600', bgClass: 'bg-red-950/40', hexColor: '#dc2626', icon: 'fa-triangle-exclamation' },
+            2: { face: 'SPIN', label: 'Trompo', colorClass: 'text-yellow-500', borderClass: 'border-yellow-500', bgClass: 'bg-yellow-950/40', hexColor: '#eab308', icon: 'fa-rotate-right' },
+            3: { face: 'SLIDE', label: 'Patinazo', colorClass: 'text-yellow-500', borderClass: 'border-yellow-500', bgClass: 'bg-yellow-950/40', hexColor: '#eab308', icon: 'fa-angles-right' },
+            4: { face: 'SHIFT', label: 'Cambio', colorClass: 'text-green-500', borderClass: 'border-green-600', bgClass: 'bg-green-950/40', hexColor: '#16a34a', icon: 'fa-gears' },
+            5: { face: 'SHIFT', label: 'Cambio', colorClass: 'text-green-500', borderClass: 'border-green-600', bgClass: 'bg-green-950/40', hexColor: '#16a34a', icon: 'fa-gears' },
+            6: { face: 'SHIFT', label: 'Cambio', colorClass: 'text-green-500', borderClass: 'border-green-600', bgClass: 'bg-green-950/40', hexColor: '#16a34a', icon: 'fa-gears' }
+        };
+
         let currentActiveCategory = 'all';
+        let lastRollResults = [];
 
         // RENDER RULES CARDS
         function renderRules(rulesToRender, searchTerm = '') {
@@ -601,9 +637,7 @@
             
             container.innerHTML = rulesToRender.map(rule => {
                 let title = rule.title;
-                let content = rule.content;
 
-                // Highlight searched text
                 if (searchTerm.trim() !== '') {
                     const regex = new RegExp(`(${searchTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
                     title = title.replace(regex, '<mark>$1</mark>');
@@ -618,7 +652,7 @@
                             </span>
                         </div>
                         <div class="text-sm text-gray-300 leading-relaxed">
-                            ${content}
+                            ${rule.content}
                         </div>
                     </article>
                 `;
@@ -629,7 +663,6 @@
         function filterCategory(category) {
             currentActiveCategory = category;
             
-            // Update active state on tag buttons
             document.querySelectorAll('.cat-tag').forEach(btn => {
                 btn.classList.remove('bg-gaslands-amber', 'text-black', 'font-bold');
                 btn.classList.add('bg-gaslands-panel', 'text-gray-300');
@@ -694,42 +727,72 @@
             document.getElementById('quickRefModal').classList.toggle('hidden');
         }
 
-        // SKID DICE SIMULATOR LOGIC
-        function rollSkidDice() {
+        // UPDATED SKID DICE SIMULATOR LOGIC
+        function rollSkidDice(isPushingEngine = false) {
             const count = parseInt(document.getElementById('diceCountSelect').value);
             const resultsContainer = document.getElementById('diceResults');
+            const summaryContainer = document.getElementById('diceSummary');
             
             resultsContainer.innerHTML = '';
+            lastRollResults = [];
 
-            const diceMap = [
-                { face: 'SHIFT', color: 'text-gaslands-amber', bg: 'border-gaslands-amber', icon: 'fa-gears' },
-                { face: 'SHIFT', color: 'text-gaslands-amber', bg: 'border-gaslands-amber', icon: 'fa-gears' },
-                { face: 'SLIDE', color: 'text-gaslands-yellow', bg: 'border-gaslands-yellow', icon: 'fa-angles-right' },
-                { face: 'SPIN', color: 'text-gaslands-yellow', bg: 'border-gaslands-yellow', icon: 'fa-rotate-right' },
-                { face: 'HAZARD', color: 'text-gaslands-rust', bg: 'border-gaslands-rust', icon: 'fa-triangle-exclamation' },
-                { face: 'HIT', color: 'text-green-400', bg: 'border-green-500', icon: 'fa-bullseye' }
-            ];
+            let shifts = 0;
+            let hazards = 0;
+            let spins = 0;
+            let slides = 0;
 
             for (let i = 0; i < count; i++) {
-                const rollIndex = Math.floor(Math.random() * 6);
-                const result = diceMap[rollIndex];
+                const d6Roll = Math.floor(Math.random() * 6) + 1;
+                const result = SKID_DICE_MAPPING[d6Roll];
+                lastRollResults.push({ d6: d6Roll, result: result });
+
+                if (result.face === 'SHIFT') shifts++;
+                if (result.face === 'HAZARD') hazards++;
+                if (result.face === 'SPIN') spins++;
+                if (result.face === 'SLIDE') slides++;
 
                 const diceElement = document.createElement('div');
-                diceElement.className = `distressed-panel p-4 rounded border-2 ${result.bg} flex flex-col items-center justify-center rolling shadow-lg`;
+                diceElement.className = `distressed-panel p-3 sm:p-4 rounded border-2 ${result.borderClass} ${result.bgClass} flex flex-col items-center justify-center rolling shadow-lg transition-transform hover:scale-105`;
                 
                 diceElement.innerHTML = `
-                    <i class="fa-solid ${result.icon} ${result.color} text-2xl mb-1"></i>
-                    <span class="font-teko text-xl font-bold ${result.color}">${result.face}</span>
-                    <span class="text-[10px] text-gray-400 font-mono">D6: ${rollIndex + 1}</span>
+                    <div class="flex items-center gap-1.5 mb-1">
+                        <i class="fa-solid ${result.icon} ${result.colorClass} text-xl sm:text-2xl"></i>
+                    </div>
+                    <span class="font-teko text-xl sm:text-2xl font-bold ${result.colorClass} tracking-wide">${result.face}</span>
+                    <span class="text-[10px] text-gray-400 font-mono mt-0.5">D6: ${d6Roll} (${result.label})</span>
                 `;
 
                 resultsContainer.appendChild(diceElement);
 
-                // Stop rolling animation after delay
                 setTimeout(() => {
                     diceElement.classList.remove('rolling');
-                }, 300 + (i * 100));
+                }, 250 + (i * 80));
             }
+
+            // Calculate total hazards generated (1 per Hazard, 1 per Spin, 1 per Slide)
+            const totalHazardsFromRoll = hazards + spins + slides + (isPushingEngine ? 1 : 0);
+
+            // Render summary breakdown
+            summaryContainer.classList.remove('hidden');
+            summaryContainer.innerHTML = `
+                <div>
+                    <span class="text-green-500 font-bold text-sm block font-teko leading-none">${shifts} SHIFT</span>
+                    <span class="text-[10px] text-gray-400">Cambios disponibles</span>
+                </div>
+                <div class="border-l border-gaslands-border pl-2">
+                    <span class="text-yellow-500 font-bold text-sm block font-teko leading-none">${spins} SPIN / ${slides} SLIDE</span>
+                    <span class="text-[10px] text-gray-400">Trompos / Patinazos</span>
+                </div>
+                <div class="border-l border-gaslands-border pl-2">
+                    <span class="text-red-500 font-bold text-sm block font-teko leading-none">+${totalHazardsFromRoll} PELIGROS</span>
+                    <span class="text-[10px] text-gray-400">${isPushingEngine ? '(Incluye +1 por Forzar)' : 'Generados en tirada'}</span>
+                </div>
+            `;
+        }
+
+        // PUSH THE ENGINE LOGIC (FORZAR LA MÁQUINA)
+        function pushTheEngine() {
+            rollSkidDice(true);
         }
 
         // INIT ON PAGE LOAD
